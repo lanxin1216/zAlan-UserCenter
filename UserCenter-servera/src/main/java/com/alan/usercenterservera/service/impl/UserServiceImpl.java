@@ -14,13 +14,13 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
-* @author alan
-* @description 针对表【user(用户表)】的数据库操作Service实现
-* @createDate 2024-11-18 21:56:54
-*/
+ * @author alan
+ * @description 针对表【user(用户表)】的数据库操作Service实现
+ * @createDate 2024-11-18 21:56:54
+ */
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
-    implements UserService{
+        implements UserService {
 
     @Resource
     private UserMapper userMapper;
@@ -29,8 +29,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
 
     /**
      * 用户注册
-     * @param userAccount 用户账户
-     * @param userPassword 用户密码
+     *
+     * @param userAccount   用户账户
+     * @param userPassword  用户密码
      * @param checkPassword 校验密码
      * @return 新用户id
      */
@@ -51,15 +52,15 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             return -1;
         }
         // 校验账号不包含特殊字符
-        String validPattern = "\\pP|\\pS|\\s+";
+        String validPattern = "\\p{P}|\\p{S}|\\s+";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
-        if (!matcher.find()) {
+        if (matcher.find()) {
             return -1;
         }
 
         // 校验账号是否重复
         QueryWrapper<User> objectQueryWrapper = new QueryWrapper<>();
-        objectQueryWrapper.eq("userAccount", userAccount);
+        objectQueryWrapper.eq("user_account", userAccount);
         // 查询数据库
         Long count = userMapper.selectCount(objectQueryWrapper);
         if (count > 0) {
