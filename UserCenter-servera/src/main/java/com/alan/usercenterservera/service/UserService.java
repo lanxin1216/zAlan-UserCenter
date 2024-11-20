@@ -2,6 +2,7 @@ package com.alan.usercenterservera.service;
 
 import com.alan.usercenterservera.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
+import jakarta.servlet.http.HttpServletRequest;
 
 /**
 * @author alan
@@ -19,4 +20,12 @@ public interface UserService extends IService<User> {
      */
     long userRegister (String userAccount, String userPassword, String checkPassword);
 
+    /**
+     * 用户登录
+     * @param userAccount 用户名
+     * @param userPassword 密码
+     * @param request 请求
+     * @return 返回用户信息
+     */
+    User userLogin (String userAccount, String userPassword, HttpServletRequest request);
 }

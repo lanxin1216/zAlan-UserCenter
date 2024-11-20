@@ -1,7 +1,5 @@
 package com.alan.usercenterservera.service;
 
-import java.util.Date;
-
 import com.alan.usercenterservera.model.domain.User;
 import jakarta.annotation.Resource;
 import org.junit.jupiter.api.Assertions;
