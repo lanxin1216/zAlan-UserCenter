@@ -4,6 +4,8 @@ import com.alan.usercenterservera.model.domain.User;
 import com.baomidou.mybatisplus.extension.service.IService;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.util.List;
+
 /**
 * @author alan
 * @description 针对表【user(用户表)】的数据库操作Service
@@ -28,4 +30,18 @@ public interface UserService extends IService<User> {
      * @return 返回用户信息
      */
     User userLogin (String userAccount, String userPassword, HttpServletRequest request);
+
+    /**
+     * 搜索获取用户列表（根据用户名模糊搜索）
+     * @param userName 用户名
+     * @return 返回用户列表
+     */
+    List<User> searchUsers(String userName);
+
+    /**
+     * 删除用户
+     * @param id 用户 id
+     * @return 返回删除结果
+     */
+    boolean deleteUser(Long id);
 }

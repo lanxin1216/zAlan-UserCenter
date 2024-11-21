@@ -12,8 +12,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import static com.alan.usercenterservera.constant.UserConstant.*;
 
 /**
  * @author alan
@@ -31,11 +36,6 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 盐值，混淆密码
      */
     private static final String SALT = "alan";
-
-    /**
-     * 用户登录态
-     */
-    private static final String USER_LOGIN_STATE = "userLoginState";
 
     /**
      * 用户注册
@@ -135,19 +135,73 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         }
 
         /* 数据脱敏 */
-        User safetyUser = new User();
-        safetyUser.setId(user.getId());
-        safetyUser.setUsername(user.getUsername());
-        safetyUser.setUserAccount(user.getUserAccount());
-        safetyUser.setAvatarUrl(user.getAvatarUrl());
-        safetyUser.setGender(user.getGender());
-        safetyUser.setPhone(user.getPhone());
-        safetyUser.setEmail(user.getEmail());
-        safetyUser.setUserStatus(user.getUserStatus());
-        safetyUser.setCreateTime(user.getCreateTime());
-
+        User safetyUser = getSafetyUser(user);
         /* 记录保存登录态 */
         request.getSession().setAttribute(USER_LOGIN_STATE, safetyUser);
+
+        return safetyUser;
+    }
+
+    /**
+     * 搜索获取用户列表（根据用户名模糊搜索）
+     *
+     * @param userName 用户名
+     * @return 返回用户列表
+     */
+    @Override
+    public List<User> searchUsers(String userName) {
+        QueryWrapper<User> queryWrapper = new QueryWrapper<>();
+        // 模糊搜索;首先判断uerName是否为空或''
+        if (StringUtils.isNotBlank(userName)) {
+            queryWrapper.like("username", userName);
+        }
+        List<User> userList = userMapper.selectList(queryWrapper);
+        List<User> safetyUserList = new ArrayList<>();
+
+        // List<User> safetyUserList = userList.stream().map(user -> getSafetyUser(user)).collect(Collectors.toList()); 使用stream流的方法
+
+        for (User user : userList) {
+            User safetyUser = getSafetyUser(user);
+            safetyUserList.add(safetyUser);
+        }
+        return safetyUserList;
+    }
+
+    /**
+     * 删除用户
+     *
+     * @param id 用户 id
+     * @return 返回删除结果
+     */
+    @Override
+    public boolean deleteUser(Long id) {
+        if (id <= 0) {
+            return false;
+        }
+        // 删除用户-返回修改的行数
+        int result = userMapper.deleteById(id);
+        return result != 0;
+    }
+
+
+    /**
+     * 用户数据脱敏
+     */
+    private User getSafetyUser(User originUser) {
+        if (originUser == null) {
+            return null;
+        }
+        User safetyUser = new User();
+        safetyUser.setId(originUser.getId());
+        safetyUser.setUsername(originUser.getUsername());
+        safetyUser.setUserAccount(originUser.getUserAccount());
+        safetyUser.setAvatarUrl(originUser.getAvatarUrl());
+        safetyUser.setGender(originUser.getGender());
+        safetyUser.setPhone(originUser.getPhone());
+        safetyUser.setEmail(originUser.getEmail());
+        safetyUser.setUserStatus(originUser.getUserStatus());
+        safetyUser.setUserRole(originUser.getUserRole());
+        safetyUser.setCreateTime(originUser.getCreateTime());
 
         return safetyUser;
     }
