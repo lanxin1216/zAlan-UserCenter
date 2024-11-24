@@ -69,13 +69,27 @@ public class UserController {
     }
 
     /**
-     * 搜索获取用户列表（根据用户名模糊搜索）
-     * @param userName 用户名
+     * 用户注销登录
+     *
      * @param request http请求
+     * @return 返回登录结果
+     */
+    public Integer userLogout(HttpServletRequest request) {
+        if (request == null) {
+            return null;
+        }
+        return userService.userLogout(request);
+    }
+
+    /**
+     * 搜索获取用户列表（根据用户名模糊搜索）
+     *
+     * @param userName 用户名
+     * @param request  http请求
      * @return 用户列表
      */
     @GetMapping("/search")
-    public List<User> searchUsers (String userName, HttpServletRequest request) {
+    public List<User> searchUsers(String userName, HttpServletRequest request) {
         if (!isAdmin(request)) {
             return new ArrayList<>();
         }
@@ -84,13 +98,14 @@ public class UserController {
 
     /**
      * 删除用户
-     * @param userId 用户 id
+     *
+     * @param userId  用户 id
      * @param request http请求
      * @return 返回删除结果
      */
     @PostMapping("/delete")
     public boolean deleteUser(@RequestBody long userId, HttpServletRequest request) {
-        if(!isAdmin(request)) {
+        if (!isAdmin(request)) {
             return false;
         }
         return userService.deleteUser(userId);

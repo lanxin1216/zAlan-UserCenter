@@ -183,6 +183,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return result != 0;
     }
 
+    /**
+     * 用户注销
+     *
+     * @param request 请求
+     * @return 返回注销结果
+     */
+    @Override
+    public int userLogout(HttpServletRequest request) {
+        // 移除登录态
+        request.getSession().removeAttribute(USER_LOGIN_STATE);
+        return 1;
+    }
+
 
     /**
      * 用户数据脱敏
