@@ -1,5 +1,9 @@
 package com.alan.usercenterservera.controller;
 
+import com.alan.usercenterservera.common.enumeration.ErrorCode;
+import com.alan.usercenterservera.common.response.BaseResponse;
+import com.alan.usercenterservera.common.response.BaseResponseUtils;
+import com.alan.usercenterservera.exception.BusinessException;
 import com.alan.usercenterservera.model.domain.User;
 import com.alan.usercenterservera.model.request.UserLoginRequest;
 import com.alan.usercenterservera.model.request.UserRegisterRequest;
@@ -9,7 +13,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.alan.usercenterservera.constant.UserConstant.ADMIN_ROLE;
@@ -33,18 +36,19 @@ public class UserController {
      * @return 注册成功返回用户id
      */
     @PostMapping("/register")
-    public Long userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
+    public BaseResponse<Long> userRegister(@RequestBody UserRegisterRequest userRegisterRequest) {
         if (userRegisterRequest == null) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         /* 获取数据 */
         String userAccount = userRegisterRequest.getUserAccount();
         String userPassword = userRegisterRequest.getUserPassword();
         String checkPassword = userRegisterRequest.getCheckPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        return userService.userRegister(userAccount, userPassword, checkPassword);
+        long result = userService.userRegister(userAccount, userPassword, checkPassword);
+        return BaseResponseUtils.success(result);
     }
 
     /**
@@ -55,17 +59,18 @@ public class UserController {
      * @return 返回用户脱敏后信息
      */
     @PostMapping("/login")
-    public User userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
+    public BaseResponse<User> userLogin(@RequestBody UserLoginRequest userLoginRequest, HttpServletRequest request) {
         if (userLoginRequest == null) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         /* 获取数据 */
         String userAccount = userLoginRequest.getUserAccount();
         String userPassword = userLoginRequest.getUserPassword();
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        return userService.userLogin(userAccount, userPassword, request);
+        User resultUser = userService.userLogin(userAccount, userPassword, request);
+        return BaseResponseUtils.success(resultUser);
     }
 
     /**
@@ -74,11 +79,13 @@ public class UserController {
      * @param request http请求
      * @return 返回登录结果
      */
-    public Integer userLogout(HttpServletRequest request) {
+    @PostMapping("/logout")
+    public BaseResponse<Integer> userLogout(HttpServletRequest request) {
         if (request == null) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
-        return userService.userLogout(request);
+        int result = userService.userLogout(request);
+        return BaseResponseUtils.success(result);
     }
 
     /**
@@ -89,11 +96,12 @@ public class UserController {
      * @return 用户列表
      */
     @GetMapping("/search")
-    public List<User> searchUsers(String userName, HttpServletRequest request) {
+    public BaseResponse<List<User>> searchUsers(String userName, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            return new ArrayList<>();
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        return userService.searchUsers(userName);
+        List<User> userList = userService.searchUsers(userName);
+        return BaseResponseUtils.success(userList);
     }
 
     /**
@@ -104,11 +112,12 @@ public class UserController {
      * @return 返回删除结果
      */
     @PostMapping("/delete")
-    public boolean deleteUser(@RequestBody long userId, HttpServletRequest request) {
+    public BaseResponse<Boolean> deleteUser(@RequestBody long userId, HttpServletRequest request) {
         if (!isAdmin(request)) {
-            return false;
+            throw new BusinessException(ErrorCode.NO_AUTH);
         }
-        return userService.deleteUser(userId);
+        boolean result = userService.deleteUser(userId);
+        return BaseResponseUtils.success(result);
     }
 
     /**

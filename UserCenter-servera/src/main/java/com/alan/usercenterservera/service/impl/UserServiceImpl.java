@@ -1,10 +1,12 @@
 package com.alan.usercenterservera.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.alan.usercenterservera.common.enumeration.ErrorCode;
+import com.alan.usercenterservera.exception.BusinessException;
+import com.alan.usercenterservera.mapper.UserMapper;
 import com.alan.usercenterservera.model.domain.User;
 import com.alan.usercenterservera.service.UserService;
-import com.alan.usercenterservera.mapper.UserMapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -16,9 +18,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
-import static com.alan.usercenterservera.constant.UserConstant.*;
+import static com.alan.usercenterservera.constant.UserConstant.USER_LOGIN_STATE;
 
 /**
  * @author alan
@@ -49,23 +50,23 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public long userRegister(String userAccount, String userPassword, String checkPassword) {
         /* 校验 */
         if (StringUtils.isAnyBlank(userAccount, userPassword, checkPassword)) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名过短");
         }
         if (userPassword.length() < 8) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码过短");
         }
         // 校验两次密码是否一致
         if (!userPassword.equals(checkPassword)) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "两次密码不一致");
         }
         // 校验账号不包含特殊字符
         String validPattern = "\\p{P}|\\p{S}|\\s+";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号包含特殊字符");
         }
 
         // 校验账号是否重复
@@ -74,7 +75,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         // 查询数据库
         Long count = userMapper.selectCount(objectQueryWrapper);
         if (count > 0) {
-            return -1;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号重复");
         }
 
         /* 密码加密 */
@@ -89,7 +90,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         boolean saveResult = this.save(user);
         // 判断是否保存成功
         if (!saveResult) {
-            return -1;
+            throw new BusinessException(ErrorCode.REGISTER_ERROR, "注册失败,请稍后重试");
         }
 
         return user.getId();
@@ -108,19 +109,19 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     public User userLogin(String userAccount, String userPassword, HttpServletRequest request) {
         /* 校验 */
         if (StringUtils.isAnyBlank(userAccount, userPassword)) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "参数为空");
         }
         if (userAccount.length() < 4) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "用户名过短");
         }
         if (userPassword.length() < 8) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "密码过短");
         }
         // 校验账号不包含特殊字符
         String validPattern = "\\p{P}|\\p{S}|\\s+";
         Matcher matcher = Pattern.compile(validPattern).matcher(userAccount);
         if (matcher.find()) {
-            return null;
+            throw new BusinessException(ErrorCode.PARAMS_ERROR, "账号包含特殊字符");
         }
         /* 加密 */
         String encodedPassword = DigestUtils.md5DigestAsHex((SALT + userPassword).getBytes());
@@ -131,7 +132,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         User user = userMapper.selectOne(queryWrapper);
         if (user == null) {
             log.info("user login failed, userAccount cannot match userPassword");
-            return null;
+            throw new BusinessException(ErrorCode.LOGIN_ERROR, "登录失败，用户名或密码错误。");
         }
 
         /* 数据脱敏 */
